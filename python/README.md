@@ -15,6 +15,7 @@ The following packages are required:
 * matplotlib
 * pillow
 * colour_demosaicing
+* opencv
 
 These can be installed with pip:
 
@@ -37,7 +38,7 @@ Command Line Tools
 The `detect_lanes.py` script can be used to view images and plots lanes from the data-set.
 
 ```bash
-python detect_lanes.py --images_dir /path/to/data/stereo/centre
+python detect_lanes.py --dir /path/to/data/stereo/centre
 ```
 
 

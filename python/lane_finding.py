@@ -128,11 +128,11 @@ def lane_detect(lines):
 	
 	# checks if left and right lane have been detected
 	if len(left_lane) > 0:
-		left_lane = cv2.fitLine(np.array(left_lane), cv2.cv.CV_DIST_L2, 0 ,.01, .01)
+		left_lane = cv2.fitLine(np.array(left_lane), cv2.DIST_L2, 0 ,.01, .01)
 	else:
 		left_lane = None
 	if len(right_lane) > 0:
-		right_lane = cv2.fitLine(np.array(right_lane), cv2.cv.CV_DIST_L2, 0, .01, .01)
+		right_lane = cv2.fitLine(np.array(right_lane), cv2.DIST_L2, 0, .01, .01)
 	else:
 		right_lane = None
 	lanes = [left_lane, right_lane]
