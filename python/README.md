@@ -1,7 +1,9 @@
 Robotcar Dataset Python Tools
 =============================
 
-This directory contains sample python code for viewing and manipulating data.
+This is a forked repo from the Oxford Self Driving Data set. My goal was to build a function to detect lanes using image recognition. 
+
+I used their function which reads images as a starting place.
 
 Requirements
 ------------
@@ -20,47 +22,43 @@ These can be installed with pip:
 pip install numpy matplotlib colour_demosaicing pillow
 ```
 
+Data
+------------------
+I tested on the Oxford small sample data set:
+
+Download by clicking here, then extract all files in the same directory:
+http://robotcar-dataset.robots.ox.ac.uk/downloads/sample_small.tar
 
 Command Line Tools
 ------------------
 
-### Viewing Images
-The `play_images.py` script can be used to view images from the dataset.
+### Detect Lanes
+The `detect_lanes.py` script can be used to view images and plots lanes from the data-set.
 
 ```bash
-python play_images.py --images_dir /path/to/data/yyyy-mm-dd-hh-mm-ss/stereo/centre
+python detect_lanes.py --images_dir /path/to/data/stereo/centre
 ```
 
-If you wish to undistort the images before viewing them, pass the camera model directory as a second argument:
 
-```bash
-python play_images.py --images_dir /path/to/data/yyyy-mm-dd-hh-mm-ss/stereo/centre --models_dir /path/to/camera/models
-```
+Design Choices
+------------------
+I implemented a lane detection function which takes input images and then plots the images with the lanes overlaid.
 
-### Building Pointclouds
-The `build_pointcloud.py` script builds and displays a 3D pointcloud by combining multiple LIDAR scans with a pose source.
-The pose source can be either INS data or the supplied visual odometry data. For example:
+The function is broken down into 4 main parts:
 
-```bash
-python build_pointcloud.py --laser_dir /path/to/data/yyyy-mm-dd-hh-mm-ss/lms_front --extrinsics_dir ../extrinsics --poses_file /path/to/data/yyyy-mm-dd-hh-mm-ss/vo/vo.csv'
-```
+1: Edge detection
+- I used the Canny edge detecting algorithm to find edges in the original image. Without this, the next steps would be much harder.
 
-### Projecting pointclouds into images
-The `project_laser_into_camera.py` script first builds a pointcloud, then projects it into a camera image using a pinhole camera model.
-For example:
+2: Masking
+- In this case, I'm only really interested in the portion of the image which contains the lanes. Thus, I mask out everything above the horizon and below the nose of the car so that they don't interfere with the lane detection.
 
-```bash
-python project_laser_into_camera.py --image_dir /path/to/data/yyyy-mm-dd-hh-mm-ss/stereo/centre --laser_dir /path/to/data/yyyy-mm-dd-hh-mm-ss/ldmrs --poses_file /path/to/data/yyyy-mm-dd-hh-mm-ss/vo/vo.csv --models_dir /path/to/models --extrinsics_dir ../extrinsics --image_idx 200
-```
+3: Line detection
+- I used the probabilistic Hough Line Transform to extact lines among the edges. The proabilistic implementation is more efficient, and is also nice because it outputs actual pixel locations for each line.
 
-Usage from Python
------------------
-The scripts here are also designed to be used in your own scripts.
+4: Lane detection
+- Finally, I wanted to group together the detected lines into a right lane and a left lane so that I could plot the lanes more clearly. First I rejected lines with slopes near horizontal, then divided the lines that were on the right and left side of the FOV. I performed linear regression on the points combining the left and right lanes to arrive on my final estimate for the lanes. This is what is then plotted
 
-* `build_pointcloud.py`: function for building a pointcloud from LIDAR and odometry data
-* `camera_model.py`: loads camera models from disk, and provides undistortion of images and projection of pointclouds
-* `interpolate_poses.py`: functions for interpolating VO or INS data to obtain pose estimates at arbitrary timestamps
-* `transform.py`: functions for converting between various transform representations
-* `image.py`: function for loading, Bayer demosaicing and undistorting images
 
-For examples of how to use these functions, see the command line tools above.
+Results
+------------------
+My function had trouble detecting the left lane, although this is because there wasn't really a distinguishable lane in most of the images. Detection of the right lane was better because the lane was more apparent.
